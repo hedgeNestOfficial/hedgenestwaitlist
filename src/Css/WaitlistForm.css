@@ -78,6 +78,23 @@
   opacity: 0.9;
 }
 
+.reserve-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: #b91c1c;
+  font-size: 14px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
 .form-group select {
   cursor: pointer;
 }
