@@ -1,1 +1,1 @@
-const Age = "waitlistForm.age";
+export const Age = "waitlistForm.age";
