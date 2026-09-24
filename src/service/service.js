@@ -8,9 +8,16 @@ import { API_BASE_URL, WAITLIST_API_ENDPOINT } from "../config/config.js";
  * @param {string} data.lastName - User's last name
  * @param {string} data.email - User's email address
  * @param {string} data.amountRange - Selected savings/investment amount range slug
+ * @param {string|null} [data.referralCode] - Optional referral code from URL
  * @returns {Promise<Object>} API response object containing success status, message, and data
  */
-export const registerWaitlist = async ({ firstName, lastName, email, amountRange }) => {
+export const registerWaitlist = async ({
+  firstName,
+  lastName,
+  email,
+  amountRange,
+  referralCode = null,
+}) => {
   const response = await axios.post(
     WAITLIST_API_ENDPOINT,
     {
@@ -18,6 +25,7 @@ export const registerWaitlist = async ({ firstName, lastName, email, amountRange
       lastName: lastName?.trim(),
       email: email?.trim(),
       amountRange,
+      referralCode: referralCode || null,
     },
     {
       headers: {

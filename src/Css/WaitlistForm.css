@@ -252,6 +252,90 @@
   color: #c9922a;
 }
 
+.verify-card {
+  position: relative;
+  background: #0b091a;
+  border: 1px solid rgba(201, 146, 42, 0.3);
+  border-radius: 16px;
+  padding: 36px 24px 28px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+}
+
+.verify-card .close-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #ffffff; /* Explicit white color for visibility */
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.verify-card .close-button:hover {
+  color: #c9922a;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.verify-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(201, 146, 42, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: #c9922a;
+  font-size: 26px;
+}
+
+.verify-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.verify-message {
+  font-size: 14px;
+  color: #ffffff; 
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.verify-message strong {
+  color: #c9922a; 
+}
+
+/* Primary Action Button */
+.got-it-button {
+  width: 100%;
+  background-color: #c9922a;
+  color: #0b091a;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.got-it-button:hover {
+  background-color: #d89f33;
+}
 @media (max-width: 767px) {
   .waitlist-form {
     width: 100% !important;
