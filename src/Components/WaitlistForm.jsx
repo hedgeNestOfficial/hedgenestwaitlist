@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import "../Css/WaitlistForm.css";
-import { registerWaitlist } from "../service/service.js";
+import { registerWaitlist, resendWaitlistVerification } from "../service/service.js";
+import { FaEnvelope, FaTimes } from "react-icons/fa";
 
 const WaitlistForm = () => {
+  const [searchParams] = useSearchParams();
+  const referralCodeFromUrl = searchParams.get("ref"); // Capture ?ref= from URL
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -13,8 +18,11 @@ const WaitlistForm = () => {
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [responseData, setResponseData] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+
+  // State for resending verification link
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState({ text: "", isError: false });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +33,11 @@ const WaitlistForm = () => {
     if (errorMessage) {
       setErrorMessage("");
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setResendMessage({ text: "", isError: false });
   };
 
   const handleSubmit = async (e) => {
@@ -46,11 +59,23 @@ const WaitlistForm = () => {
 
     try {
       setIsSubmitting(true);
-      const res = await registerWaitlist(formData);
+
+      // Pass referralCode along with form data
+      const res = await registerWaitlist({
+        ...formData,
+        referralCode: referralCodeFromUrl || null,
+      });
 
       if (res?.success) {
-        setResponseData(res.data);
+        setSubmittedEmail(formData.email);
         setShowModal(true);
+        setResendMessage({ text: "", isError: false });
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          amountRange: "5000-100000-annually",
+        });
       } else {
         setErrorMessage(res?.message || "Failed to join waitlist. Please try again.");
       }
@@ -65,36 +90,38 @@ const WaitlistForm = () => {
     }
   };
 
-  const handleCopy = async () => {
-    const link =
-      responseData?.referralLink ||
-      (responseData?.referralCode
-        ? `https://hedge-nest.vercel.app/waitlist?ref=${responseData.referralCode}`
-        : "");
+  const handleResend = async () => {
+    if (!submittedEmail) return;
 
-    if (!link) return;
+    setIsResending(true);
+    setResendMessage({ text: "", isError: false });
 
     try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      const res = await resendWaitlistVerification(submittedEmail);
+      setResendMessage({
+        text: res?.message || "Verification email resent successfully!",
+        isError: false,
+      });
     } catch (err) {
-      console.error("Clipboard copy failed", err);
+      const serverMsg =
+        err.response?.status === 404
+          ? "Email not found on waitlist."
+          : err.response?.data?.message || "Failed to resend email. Please try again.";
+
+      setResendMessage({
+        text: serverMsg,
+        isError: true,
+      });
+    } finally {
+      setIsResending(false);
     }
   };
-
-  const referralLinkDisplay =
-    responseData?.referralLink ||
-    (responseData?.referralCode
-      ? `https://hedge-nest.vercel.app/waitlist?ref=${responseData.referralCode}`
-      : "Link will be generated upon confirmation");
 
   return (
     <section className="waitlist-form">
       <h1>Join the waitlist</h1>
       <p className="form-description">
-        Takes 20 seconds. We'll send your invite and referral reward link by
-        email.
+        Earn an entry into our 1 USDT raffle draw for every friend who joins using your link. The more friends you refer, the higher your chances of winning!
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -170,70 +197,72 @@ const WaitlistForm = () => {
         By joining, you agree to our <a href="#terms">Terms</a> and <a href="#privacy">Privacy Policy</a>.
       </p>
 
+      {/* VERIFY EMAIL MODAL */}
       {showModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-          <div className="success-modal">
+        <div className="modal-overlay" role="dialog" aria-modal="true" onClick={handleCloseModal}>
+          <div className="verify-card" onClick={(e) => e.stopPropagation()}>
             <button
               className="close-button"
-              onClick={() => setShowModal(false)}
+              onClick={handleCloseModal}
               aria-label="Close modal"
               type="button"
             >
-              x
+              <FaTimes />
             </button>
 
-            <div className="success-icon" aria-hidden="true">
-              ✓
+            <div className="verify-icon" aria-hidden="true">
+              <FaEnvelope />
             </div>
-            <h2>You're on the list, {responseData?.firstName || formData.firstName}!</h2>
 
-            <p className="success-message">
-              We've reserved your spot. Your referral link and{" "}
-              {responseData?.signupBonus
-                ? `₦${responseData.signupBonus.toLocaleString()}`
-                : "₦5,000"}{" "}
-              bonus details are on their way to{" "}
-              <strong>{responseData?.email || formData.email}.</strong>
+            <h2>Check Your Email</h2>
+
+            <p className="verify-message">
+              We've sent a verification link to <strong>{submittedEmail}</strong>. 
+              Please click the link in your email to confirm your spot on the waitlist!
             </p>
 
-            <button
-              type="button"
-              className="whatsapp-button"
-              onClick={() => window.open("https://chat.whatsapp.com/", "_blank")}
-            >
-              <span className="whatsapp-icon">◉</span>
-              Join our WhatsApp Community
-            </button>
+            {/* RESEND VERIFICATION SECTION */}
+            <div style={{ margin: "16px 0", textAlign: "center" }}>
+              <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "6px" }}>
+                Didn't receive the email? Check your spam folder or
+              </p>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2563eb",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {isResending ? "Resending..." : "Click here to resend"}
+              </button>
 
-            <div className="referral-card">
-              <h3>
-                Your referral link —{" "}
-                {responseData?.referralReward
-                  ? `₦${responseData.referralReward.toLocaleString()}`
-                  : "₦2,000"}{" "}
-                per friend
-              </h3>
-              <div className="referral-link-container">
-                <p className="referral-link" title={referralLinkDisplay}>
-                  {referralLinkDisplay}
-                </p>
-
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={handleCopy}
+              {resendMessage.text && (
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    marginTop: "8px",
+                    color: resendMessage.isError ? "#ef4444" : "#10b981",
+                    fontWeight: "500",
+                  }}
                 >
-                  {copied ? "✓ Copied" : "📋 Copy"}
-                </button>
-              </div>
+                  {resendMessage.text}
+                </p>
+              )}
             </div>
 
             <button
               type="button"
-              className="homepage-button"
-              onClick={() => setShowModal(false)}
+              className="got-it-button"
+              onClick={handleCloseModal}
             >
-              Back to Homepage
+              Got it
             </button>
           </div>
         </div>
