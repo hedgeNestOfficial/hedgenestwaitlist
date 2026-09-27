@@ -9,7 +9,6 @@ const SuccessModal = ({
   onClose,
   userName = "Tijani",
   position = 1,
-  totalPeople = 9,
   referralLink = "https://hedge-nest.vercel.app/waitlist?r=123",
   referralReward = "1 USDT",
 }) => {
@@ -56,7 +55,6 @@ const SuccessModal = ({
         <div className="position-box">
           <p className="position-label">YOUR WAITLIST POSITION</p>
           <h2 className="position-number">#{position}</h2>
-          <p className="total-people">Out of <strong>{totalPeople}</strong> people on the waitlist.</p>
           <div className="position-divider" />
           <p className="position-subtext">We’ll reach out when HedgeNest is ready for you.</p>
         </div>
