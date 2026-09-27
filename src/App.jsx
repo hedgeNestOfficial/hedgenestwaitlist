@@ -30,43 +30,37 @@ function App() {
 
         const res = await verifyWaitlist({ token, email });
 
-if (isMounted) {
-  const userData = res.data || res;
+        if (isMounted) {
+          const userData = res.data || res;
 
-  // Map backend response attributes cleanly
-  setVerifiedUserData({
-    userName: userData.firstName || userData.name || email.split("@")[0],
-    position: userData.waitlistPosition || userData.position || 1,
-    // Dynamic fallback so total is never less than position:
-    totalPeople:
-      userData.totalPeople ||
-      userData.totalCount ||
-      userData.waitlistPosition ||
-      1,
-    referralLink: userData.referralLink || "",
-    referralReward: userData.referralReward || "1 USDT",
-  });
-}
-} catch (err) {
-  if (isMounted) {
-    const msg =
-      err?.response?.data?.message ||
-      "Verification link is invalid or has expired.";
-    setVerificationError(msg);
-  }
-} finally {
-  if (isMounted) {
-    setIsVerifying(false);
-  }
-}
-};
+          // Map backend response attributes cleanly
+          setVerifiedUserData({
+            userName: userData.firstName || userData.name || email.split("@")[0],
+            position: userData.waitlistPosition || userData.position || 1,
+            referralLink: userData.referralLink || "",
+            referralReward: userData.referralReward || "1 USDT",
+          });
+        }
+      } catch (err) {
+        if (isMounted) {
+          const msg =
+            err?.response?.data?.message ||
+            "Verification link is invalid or has expired.";
+          setVerificationError(msg);
+        }
+      } finally {
+        if (isMounted) {
+          setIsVerifying(false);
+        }
+      }
+    };
 
-runVerification();
+    runVerification();
 
-return () => {
-  isMounted = false;
-};
-}, [token, email, verifiedUserData]);
+    return () => {
+      isMounted = false;
+    };
+  }, [token, email, verifiedUserData]);
 
   const isSuccessModalOpen = Boolean(verifiedUserData) && !isDismissed;
 
@@ -130,7 +124,6 @@ return () => {
         onClose={handleCloseModal}
         userName={verifiedUserData?.userName || "Friend"}
         position={verifiedUserData?.position || 1}
-        totalPeople={verifiedUserData?.totalPeople || 1}
         referralLink={verifiedUserData?.referralLink || "https://hedge-nest.vercel.app/"}
         referralReward={verifiedUserData?.referralReward || "1 USDT"}
       />
